@@ -7,9 +7,9 @@ public class BaseRepository<T> : IBaseRepository<T> where T : BaseEntity {
     internal readonly AppDbContext DbContext;
     internal readonly DbSet<T> DbSet;
 
-    public BaseRepository(AppDbContext dbContext, DbSet<T> dbSet) {
+    public BaseRepository(AppDbContext dbContext) {
         DbContext = dbContext;
-        DbSet = dbSet;
+        DbSet = dbContext.Set<T>();
     }
 
     public async Task AddAsync(T entity) {

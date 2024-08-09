@@ -5,6 +5,10 @@ namespace Phonebook;
 public class Menu {
     private readonly PhoneService _phoneService;
 
+    public Menu(PhoneService phoneService) {
+        _phoneService = phoneService;
+    }
+
     public static void DisplayName() {
         AnsiConsole.Write(
             new FigletText("Phonebook")
@@ -12,7 +16,7 @@ public class Menu {
             .Color(Color.Silver));
     }
 
-    public async Task<bool> Run() {
+    public async Task<bool> RunAsync() {
         DisplayName();
         while (true) {
             var choice = AnsiConsole.Prompt(
@@ -27,10 +31,10 @@ public class Menu {
 
             switch (choice) {
                 case "View entries":
-                    //await _studySessionManager.RunAsync();
+                    await _phoneService.ViewEntriesAsync();
                     break;
                 case "Add entry":
-                    //_flashcardManager.Run();
+                    await _phoneService.AddEntryAsync();
                     break;
                 case "Edit entry":
                     //await _stackManager.RunAsync();
