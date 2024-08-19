@@ -27,7 +27,7 @@ public class BaseRepository<T> : IBaseRepository<T> where T : BaseEntity {
         await DbContext.SaveChangesAsync();
     }
 
-    public Task<List<T>> GetAllAsync(params Expression<Func<T, object>>[] include) {
+    public Task<List<T>> GetAsync(params Expression<Func<T, object>>[] include) {
         IQueryable<T> query = DbSet;
 
         foreach (var inc in include) {

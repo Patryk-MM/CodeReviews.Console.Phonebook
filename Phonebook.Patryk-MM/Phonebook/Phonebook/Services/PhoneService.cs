@@ -1,8 +1,6 @@
 ﻿using Phonebook.Models;
 using Phonebook.Repositories;
 using Spectre.Console;
-using System.Runtime.CompilerServices;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Phonebook.Services;
 public class PhoneService {
@@ -13,7 +11,7 @@ public class PhoneService {
     }
 
     public async Task ViewEntriesAsync() {
-        var entries = await _repository.GetAllAsync();
+        var entries = await _repository.GetAsync();
 
 
         // Pagination settings
@@ -27,9 +25,9 @@ public class PhoneService {
             Console.Clear();
             Menu.DisplayName(); 
 
-
             // Create a table
             var table = new Table();
+            var align = new Align(table, HorizontalAlignment.Center);
 
             // Add columns with footer
             table.AddColumn("Name");
@@ -50,9 +48,8 @@ public class PhoneService {
             // Set table caption with navigation instructions
             table.Caption = new TableTitle($"[white]Page {currentPage}/{totalPages}[/]\n [grey]Use Left and Right arrow keys to navigate, Q to quit.[/]");
 
-
             // Render the table
-            AnsiConsole.Write(table);
+            AnsiConsole.Write(align);
 
             // Handle pagination input
             var key = Console.ReadKey(true).Key;
@@ -68,5 +65,43 @@ public class PhoneService {
     }
     public async Task AddEntryAsync() {
         var entry = new PhoneEntry();
+        entry.Name = AnsiConsole.Ask<string>("Contact's name: ");
+
+        entry.PhoneNumber = AnsiConsole.Prompt(
+        new TextPrompt<string>("Contact's phone number: ")
+            .Validate(phoneNumber => {
+                return Validation.IsValidPhone(phoneNumber)
+                    ? ValidationResult.Success()
+                    : ValidationResult.Error("[red]Invalid phone number. Please try again.[/]");
+            })
+    );
+
+        entry.Email = AnsiConsole.Prompt(
+            new TextPrompt<string>("Contact's email address: ")
+                .Validate(email => {
+                    return Validation.IsValidEmail(email)
+                        ? ValidationResult.Success()
+                        : ValidationResult.Error("[red]Invalid email address. Please try again.[/]");
+                })
+        );
+
+        DataVisualization.PrintEntry(entry);
+
+        if (AnsiConsole.Confirm("Do you want to add the created contact?")) {
+            await _repository.AddAsync(entry);
+            AnsiConsole.MarkupLine("[green]Contact added successfully.[/]");
+        } else {
+            AnsiConsole.MarkupLine("[yellow]Operation cancelled.[/]");
+        }
+    }
+
+    public async Task EditEntryAsync() {
+        var entries = await _repository.GetAsync();
+        var nameList = entries.Select(entry => entry.Name).ToList();
+
+        var choice = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+            .Title("Choose an entry: ")
+            .AddChoices(nameList));
     }
 }

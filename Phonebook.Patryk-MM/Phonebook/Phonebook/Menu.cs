@@ -37,7 +37,7 @@ public class Menu {
                     await _phoneService.AddEntryAsync();
                     break;
                 case "Edit entry":
-                    //await _stackManager.RunAsync();
+                    await _phoneService.EditEntryAsync();
                     break;
                 case "Delete entry":
                     //await _stackManager.RunAsync();
