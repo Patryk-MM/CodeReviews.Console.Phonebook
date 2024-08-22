@@ -13,6 +13,10 @@ public class AppDbContext : DbContext {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<PhoneEntry>()
+            .HasIndex(e => e.Name)
+            .IsUnique();
+
+        modelBuilder.Entity<PhoneEntry>()
             .HasData(
             new PhoneEntry {
                 Id = 1,

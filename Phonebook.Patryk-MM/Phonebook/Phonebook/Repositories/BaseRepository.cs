@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Phonebook.Models;
+using Spectre.Console;
 using System.Linq.Expressions;
 
 namespace Phonebook.Repositories;
@@ -25,6 +26,10 @@ public class BaseRepository<T> : IBaseRepository<T> where T : BaseEntity {
     public async Task EditAsync(T entity) {
         DbSet.Update(entity);
         await DbContext.SaveChangesAsync();
+    }
+
+    public async Task<T?> GetItemAsync(Expression<Func<T, bool>> predicate) {
+        return await DbSet.FirstOrDefaultAsync(predicate);
     }
 
     public Task<List<T>> GetAsync(params Expression<Func<T, object>>[] include) {
