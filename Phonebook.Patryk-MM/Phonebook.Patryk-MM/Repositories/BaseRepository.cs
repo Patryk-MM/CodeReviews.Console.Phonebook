@@ -40,14 +40,12 @@ public class BaseRepository<T> : IBaseRepository<T> where T : BaseEntity {
     }
     catch (Exception ex) 
     {
-        // This will print the exact reason for the crash in bright red
         Spectre.Console.AnsiConsole.WriteException(ex);
         
-        // This freezes the console so it doesn't close on you
         Console.WriteLine("Press ANY key to exit...");
         Console.ReadLine(); 
         
-        throw; // Re-throw after you've read it
+        throw;
     }
 }
 
@@ -56,6 +54,8 @@ public class BaseRepository<T> : IBaseRepository<T> where T : BaseEntity {
     }
 
     public async Task<T?> GetByIdAsync(Guid id) {
-        return await _dbSet.FindAsync(id);
+        return await _dbSet
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id);
     }
 }

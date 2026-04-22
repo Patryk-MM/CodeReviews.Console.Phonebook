@@ -14,16 +14,8 @@ public class MainMenu {
         _service = service;
     }
 
-
-    public static void DisplayName() {
-        AnsiConsole.Write(
-            new FigletText("Phonebook")
-            .Centered()
-            .Color(Color.Green));
-    }
-
     public async Task RunAsync() {
-        DisplayName();
+        Utility.ClearConsole();
 
         while (true) {
             var choice = AnsiConsole.Prompt(
@@ -31,10 +23,9 @@ public class MainMenu {
                 .Title("[bold]Choose an option:[/]")
                 .AddChoices(_choices));
 
-            AnsiConsole.Clear();
-            DisplayName();
+            Utility.ClearConsole();
 
-            switch(choice) {
+            switch (choice) {
                 case "View contacts":
                     await _service.ViewContacts();
                     break;
