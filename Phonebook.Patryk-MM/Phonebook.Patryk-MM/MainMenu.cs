@@ -1,4 +1,5 @@
-﻿using Phonebook.Patryk_MM.Services;
+﻿using Phonebook.Patryk_MM.Models;
+using Phonebook.Patryk_MM.Services;
 using Spectre.Console;
 
 namespace Phonebook.Patryk_MM;
@@ -38,6 +39,7 @@ public class MainMenu {
                     await _service.ViewContacts();
                     break;
                 case "Add new contact":
+                    await _service.AddContact();
                     break;
                 case "[red]Exit the app[/]":
                     return;
