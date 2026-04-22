@@ -1,16 +1,13 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using Phonebook.Patryk_MM.Models;
 using Phonebook.Patryk_MM.Repositories;
 using Spectre.Console;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Phonebook.Patryk_MM.Services;
 public class ContactService : IContactService {
     private readonly ContactRepository _repository;
-    private List<Contact> _contacts;
 
     public ContactService(ContactRepository repository) {
         _repository = repository;
@@ -19,7 +16,14 @@ public class ContactService : IContactService {
     public async Task ViewContacts() {
         Utility.ClearConsole();
 
-        _contacts = await _repository.GetAllAsync();
+        var contacts = await _repository.GetAllAsync();
+
+        if (!contacts.Any()) {
+            AnsiConsole.MarkupLine("[yellow]No contacts found! Add someone first.[/]");
+            Console.WriteLine("\nPress any key to return...");
+            Console.ReadKey();
+            return;
+        }
 
         SelectionPrompt<Contact> prompt = new SelectionPrompt<Contact>()
             .Title("Choose contact")
@@ -30,11 +34,11 @@ public class ContactService : IContactService {
             .WrapAround()
             .HighlightStyle(new Style(Color.LightGreen, decoration: Decoration.RapidBlink))
             .UseConverter(c => $"{c.ToString()}")
-            .AddChoices(_contacts);
+            .AddChoices(contacts);
 
         Contact selected = AnsiConsole.Prompt(prompt);
 
-        DisplayContact(selected);
+        await DisplayContact(selected);
 
         await ManageContact(selected);
     }
@@ -178,7 +182,7 @@ public class ContactService : IContactService {
                     break;
                 case "Delete contact":
                     await DeleteContact(c);
-                    break;
+                    return;
                 case "Go back":
                     Utility.ClearConsole();
                     return;
@@ -191,7 +195,7 @@ public class ContactService : IContactService {
 
         Panel panel = new Panel($"Phone number: {contactToDisplay.PhoneNumber}\n" +
             $"Email address: {contactToDisplay.Email}\nCategory: [{Contact.GetCategoryColor(contactToDisplay.Category).ToString()}]{contactToDisplay.Category}[/]")
-            .Header($"[{Contact.GetCategoryColor(contactToDisplay.Category).ToString()}]{c.Name}[/]")
+            .Header($"[{Contact.GetCategoryColor(contactToDisplay.Category).ToString()}]{contactToDisplay.Name}[/]")
             .DoubleBorder()
             .BorderColor(Contact.GetCategoryColor(contactToDisplay.Category));
 
