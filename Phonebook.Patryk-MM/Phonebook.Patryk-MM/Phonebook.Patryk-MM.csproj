@@ -6,6 +6,7 @@
     <RootNamespace>Phonebook.Patryk_MM</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>95660bf3-fe4f-4f70-8c1a-4a2f954b89ba</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

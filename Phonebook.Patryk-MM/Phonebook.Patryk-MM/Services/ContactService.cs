@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Phonebook.Patryk_MM.Models;
 using Phonebook.Patryk_MM.Repositories;
 using Spectre.Console;
+using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
 
 namespace Phonebook.Patryk_MM.Services;
@@ -34,10 +35,15 @@ public class ContactService : IContactService {
             .WrapAround()
             .HighlightStyle(new Style(Color.LightGreen, decoration: Decoration.RapidBlink))
             .UseConverter(c => $"{c.ToString()}")
-            .AddChoices(contacts);
+            .AddChoices(contacts)
+            .AddCancelResult<Contact>(new Contact {
+                Name = "cancel"
+            });
 
         Contact selected = AnsiConsole.Prompt(prompt);
 
+        if (selected.Name == "cancel") return;
+        
         await DisplayContact(selected);
 
         await ManageContact(selected);
@@ -47,26 +53,60 @@ public class ContactService : IContactService {
         string name, email, phoneNumber;
         Category category;
 
-        TextPrompt<string> prompt = new TextPrompt<string>("Contact's name:")
-            .Validate(input => input.Trim().Length > 0 && input.Trim().Length < 32, "[red]Name cannot be empty or longer than 32 characters.[/]");
+        TextPrompt<string> prompt = new TextPrompt<string>("Contact's name [grey]or 'cancel'[/]:")
+            .Validate(input => {
+                if (input.ToLower() == "cancel") {
+                    return ValidationResult.Success();
+                }
+                else if (input.Trim().Length > 0 && input.Trim().Length < 32) {
+                    return ValidationResult.Success();
+                }
+                else {
+                    return ValidationResult.Error("[red]Name cannot be empty or longer than 32 characters.[/]");
+                }
+            });
 
         name = AnsiConsole.Prompt(prompt).Trim();
 
-        prompt = new TextPrompt<string>("Contact's phone number:")
-           .Validate(input => {
-               var regex = new Regex(@"^\d{9}$");
-               return regex.IsMatch(input.Trim()) ? ValidationResult.Success() : ValidationResult.Error("[red]Please input a valid phone number.[/]");
-           });
+        if (name.ToLower() == "cancel") return;
+
+        prompt = new TextPrompt<string>("Contact's phone number [grey]or 'cancel'[/]:")
+            .Validate(input => {
+                var regex = new Regex(@"^\d{9}$");
+
+                if (input.ToLower() == "cancel") {
+                    return ValidationResult.Success();
+                }
+                else if (regex.IsMatch(input.Trim())) {
+                    return ValidationResult.Success();
+                }
+                else {
+                    return ValidationResult.Error("[red]Please input a valid phone number.[/]");
+                }
+            });
 
         phoneNumber = AnsiConsole.Prompt(prompt).Trim();
 
-        prompt = new TextPrompt<string>("Contact's email:")
+        if (phoneNumber.ToLower() == "cancel") return;
+
+        prompt = new TextPrompt<string>("Contact's email [grey]or 'cancel'[/]:")
             .Validate(input => {
                 var regex = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
-                return regex.IsMatch(input.Trim()) ? ValidationResult.Success() : ValidationResult.Error("[red]Please input a valid e-mail address.[/]");
+
+                if (input.ToLower() == "cancel") {
+                    return ValidationResult.Success();
+                }
+                else if (regex.IsMatch(input.Trim())) {
+                    return ValidationResult.Success();
+                }
+                else {
+                    return ValidationResult.Error("[red]Please input a valid e-mail address.[/]");
+                }
             });
 
         email = AnsiConsole.Prompt(prompt).Trim();
+
+        if (email.ToLower() == "cancel") return;
 
         SelectionPrompt<Category> categoryPrompt = new SelectionPrompt<Category>()
             .Title("Pick a category:")
@@ -76,6 +116,11 @@ public class ContactService : IContactService {
         category = AnsiConsole.Prompt(categoryPrompt);
 
         Contact c = new Contact(name, phoneNumber, email, category);
+
+        await DisplayContact(c);
+
+        if (!AnsiConsole.Confirm("Do you wish to add this contact to the phonebook?")) return;
+
 
         if (ContactValidator.ValidateContact(c)) {
             try {
@@ -136,7 +181,8 @@ public class ContactService : IContactService {
                 AnsiConsole.MarkupLine("[red]A phone number already exists in the database.[/]\n");
             }
             catch (Exception ex) {
-                AnsiConsole.MarkupLine($"[red]{ex.InnerException?.Message}[/]\n");
+                string errorMessage = ex.InnerException?.Message ?? ex.Message;
+                AnsiConsole.MarkupLine($"[red]Error: {errorMessage}[/]\n");
             }
         }
         else {
@@ -154,7 +200,6 @@ public class ContactService : IContactService {
                 AnsiConsole.MarkupLine("[green]Contact successfully deleted.[/]");
             }
             catch (Exception ex) {
-                // Safely falls back to ex.Message if there is no InnerException
                 string errorMessage = ex.InnerException?.Message ?? ex.Message;
                 AnsiConsole.MarkupLine($"[red]Error deleting contact: {errorMessage}[/]\n");
             }
@@ -162,9 +207,13 @@ public class ContactService : IContactService {
         else {
             AnsiConsole.MarkupLine("[grey]Deletion cancelled.[/]");
         }
+
+        Console.WriteLine("Press any key to continue...");
+        Console.ReadKey();
     }
 
     public async Task ManageContact(Contact c) {
+
         string[] options = { "Edit contact", "Delete contact", "Go back" };
 
         while (true) {
@@ -177,12 +226,11 @@ public class ContactService : IContactService {
             switch (choice) {
                 case "Edit contact":
                     await EditContact(c);
-                    Utility.ClearConsole();
                     await DisplayContact(c);
                     break;
                 case "Delete contact":
                     await DeleteContact(c);
-                    return;
+                    break;
                 case "Go back":
                     Utility.ClearConsole();
                     return;
@@ -191,13 +239,13 @@ public class ContactService : IContactService {
     }
 
     public async Task DisplayContact(Contact c) {
-        Contact contactToDisplay = await _repository.GetByIdAsync(c.Id);
+        c = await _repository.GetByIdAsync(c.Id) ?? c; //Use the local copy if database returns null
 
-        Panel panel = new Panel($"Phone number: {contactToDisplay.PhoneNumber}\n" +
-            $"Email address: {contactToDisplay.Email}\nCategory: [{Contact.GetCategoryColor(contactToDisplay.Category).ToString()}]{contactToDisplay.Category}[/]")
-            .Header($"[{Contact.GetCategoryColor(contactToDisplay.Category).ToString()}]{contactToDisplay.Name}[/]")
+        Panel panel = new Panel($"Phone number: {c.PhoneNumber}\n" +
+            $"Email address: {c.Email}\nCategory: [{Contact.GetCategoryColor(c.Category).ToString()}]{c.Category}[/]")
+            .Header($"[{Contact.GetCategoryColor(c.Category).ToString()}]{c.Name}[/]")
             .DoubleBorder()
-            .BorderColor(Contact.GetCategoryColor(contactToDisplay.Category));
+            .BorderColor(Contact.GetCategoryColor(c.Category));
 
         AnsiConsole.Write(panel);
     }
