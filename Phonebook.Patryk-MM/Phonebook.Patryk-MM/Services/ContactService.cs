@@ -28,14 +28,14 @@ public class ContactService : IContactService {
         }
 
         SelectionPrompt<Contact> prompt = new SelectionPrompt<Contact>()
-            .Title("Choose contact")
+            .Title($"\n[bold]Choose a contact [grey]or click ESC to go back[/]...\n\n{Utility.CenterHeader("Name",34)} | {Utility.CenterHeader("Phone number", 14)} | {Utility.CenterHeader("Email address", 32)} | {Utility.CenterHeader("Category", 14)}[/]")
             .PageSize(10)
-            .MoreChoicesText("Move up or down")
+            .MoreChoicesText("Move up or down...")
             .EnableSearch()
-            .SearchPlaceholderText("Type to search")
+            .SearchPlaceholderText("Type to search...")
             .WrapAround()
             .HighlightStyle(new Style(Color.LightGreen, decoration: Decoration.RapidBlink))
-            .UseConverter(c => $"{c.ToString()}")
+            .UseConverter(c => $"{c.Name,-32} | {c.PhoneNumber,-14} | {c.Email,-32} | [{Contact.GetCategoryColor(c.Category).ToString()}]{c.Category,-14}[/]")
             .AddChoices(contacts)
             .AddCancelResult(new Contact {
                 Name = "cancel"
@@ -138,6 +138,9 @@ public class ContactService : IContactService {
         else {
             AnsiConsole.MarkupLine("[yellow]There were validation errors. Please create a contact once again.[/]");
         }
+
+        Console.WriteLine("Press any key to continue...");
+        Console.ReadKey();
     }
 
     public async Task EditContact(Contact c) {

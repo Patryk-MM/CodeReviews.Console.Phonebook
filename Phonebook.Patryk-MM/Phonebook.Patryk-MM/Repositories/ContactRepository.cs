@@ -2,7 +2,6 @@
 
 namespace Phonebook.Patryk_MM.Repositories;
 public class ContactRepository : BaseRepository<Contact>, IContactRepository {
-
     public ContactRepository(PhonebookDbContext _dbContext) : base(_dbContext) {
         
     }

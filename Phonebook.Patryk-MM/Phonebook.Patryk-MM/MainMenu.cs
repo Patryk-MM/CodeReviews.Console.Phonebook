@@ -1,5 +1,4 @@
-﻿using Phonebook.Patryk_MM.Models;
-using Phonebook.Patryk_MM.Services;
+﻿using Phonebook.Patryk_MM.Services;
 using Spectre.Console;
 
 namespace Phonebook.Patryk_MM;
