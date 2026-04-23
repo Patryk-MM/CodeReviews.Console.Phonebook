@@ -3,15 +3,16 @@ using Microsoft.EntityFrameworkCore;
 using Phonebook.Patryk_MM.Models;
 using Phonebook.Patryk_MM.Repositories;
 using Spectre.Console;
-using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
 
 namespace Phonebook.Patryk_MM.Services;
 public class ContactService : IContactService {
     private readonly ContactRepository _repository;
+    private readonly EmailService _emailService;
 
-    public ContactService(ContactRepository repository) {
+    public ContactService(ContactRepository repository, EmailService emailService) {
         _repository = repository;
+        _emailService = emailService;
     }
 
     public async Task ViewContacts() {
@@ -36,7 +37,7 @@ public class ContactService : IContactService {
             .HighlightStyle(new Style(Color.LightGreen, decoration: Decoration.RapidBlink))
             .UseConverter(c => $"{c.ToString()}")
             .AddChoices(contacts)
-            .AddCancelResult<Contact>(new Contact {
+            .AddCancelResult(new Contact {
                 Name = "cancel"
             });
 
@@ -53,7 +54,7 @@ public class ContactService : IContactService {
         string name, email, phoneNumber;
         Category category;
 
-        TextPrompt<string> prompt = new TextPrompt<string>("Contact's name [grey]or 'cancel'[/]:")
+        TextPrompt<string> prompt = new TextPrompt<string>("Input contact's name [grey]or 'cancel'[/]:")
             .Validate(input => {
                 if (input.ToLower() == "cancel") {
                     return ValidationResult.Success();
@@ -70,7 +71,7 @@ public class ContactService : IContactService {
 
         if (name.ToLower() == "cancel") return;
 
-        prompt = new TextPrompt<string>("Contact's phone number [grey]or 'cancel'[/]:")
+        prompt = new TextPrompt<string>("Input contact's phone number [grey]or 'cancel'[/]:")
             .Validate(input => {
                 var regex = new Regex(@"^\d{9}$");
 
@@ -89,7 +90,7 @@ public class ContactService : IContactService {
 
         if (phoneNumber.ToLower() == "cancel") return;
 
-        prompt = new TextPrompt<string>("Contact's email [grey]or 'cancel'[/]:")
+        prompt = new TextPrompt<string>("Input contact's email [grey]or 'cancel'[/]:")
             .Validate(input => {
                 var regex = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
 
@@ -214,9 +215,12 @@ public class ContactService : IContactService {
 
     public async Task ManageContact(Contact c) {
 
-        string[] options = { "Edit contact", "Delete contact", "Go back" };
+        string[] options = {"Send email", "Edit contact", "Delete contact", "Go back" };
 
         while (true) {
+            Utility.ClearConsole();
+            await DisplayContact(c);
+
             SelectionPrompt<string> prompt = new SelectionPrompt<string>()
             .Title("Choose action")
             .AddChoices(options);
@@ -224,9 +228,11 @@ public class ContactService : IContactService {
             string choice = AnsiConsole.Prompt(prompt);
 
             switch (choice) {
+                case "Send email":
+                    await _emailService.SendEmail(c);
+                    break;
                 case "Edit contact":
                     await EditContact(c);
-                    await DisplayContact(c);
                     break;
                 case "Delete contact":
                     await DeleteContact(c);

@@ -2,7 +2,7 @@
 
 namespace Phonebook.Patryk_MM;
 public static class Utility {
-    public static void DisplayName() {
+    public static void DisplayAppName() {
         AnsiConsole.Write(
             new FigletText("Phonebook")
             .Centered()
@@ -11,6 +11,6 @@ public static class Utility {
 
     public static void ClearConsole() {
         AnsiConsole.Clear();
-        DisplayName();
+        DisplayAppName();
     }
 }
