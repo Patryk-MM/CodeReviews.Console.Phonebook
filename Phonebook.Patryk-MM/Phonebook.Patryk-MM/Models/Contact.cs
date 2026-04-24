@@ -8,8 +8,9 @@ namespace Phonebook.Patryk_MM.Models;
 public class Contact : BaseEntity {
 
     [Required]
+    [MinLength(2)]
     [MaxLength(32)]
-    public string Name { get; set; } = "";
+    public string Name { get; set; }
 
     [Required]
     [RegularExpression(@"^\d{9}$", ErrorMessage = "Phone number must be exactly 9 digits.")]  //Polish nine digits phone numbers without country prefix 

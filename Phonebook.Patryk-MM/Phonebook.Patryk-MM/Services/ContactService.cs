@@ -71,7 +71,7 @@ public class ContactService : IContactService {
 
         if (name.ToLower() == "cancel") return;
 
-        prompt = new TextPrompt<string>("Input contact's phone number [grey]or 'cancel'[/]:")
+        prompt = new TextPrompt<string>("Input contact's phone number ([underline]XXXXXXXXX[/]) [grey]or 'cancel'[/]:")
             .Validate(input => {
                 var regex = new Regex(@"^\d{9}$");
 
@@ -90,7 +90,7 @@ public class ContactService : IContactService {
 
         if (phoneNumber.ToLower() == "cancel") return;
 
-        prompt = new TextPrompt<string>("Input contact's email [grey]or 'cancel'[/]:")
+        prompt = new TextPrompt<string>("Input contact's email ([underline]username@domain.com[/]) [grey]or 'cancel'[/]:")
             .Validate(input => {
                 var regex = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
 
