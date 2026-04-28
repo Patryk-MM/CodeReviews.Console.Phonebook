@@ -26,21 +26,23 @@ A rich, interactive command-line application for managing phonebook contacts. Bu
 ### Installation and Setup
 
 1. **Clone the repository:**
+   ```bash
     git clone https://github.com/Patryk-MM/CodeReviews.Console.Phonebook.git
     cd CodeReviews.Console.Phonebook/Phonebook.Patryk-MM
-
-2. **Configure User Secrets:**
+    ```
+3. **Configure User Secrets:**
     Because this project uses the `UserSecrets` manager for configuration, you will need to set up your local secrets for the database connection and email settings. Run the following commands in the project directory:
-
+    ```bash
     dotnet user-secrets init
     dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=(localdb)\\mssqllocaldb;Database=PhonebookDb;Trusted_Connection=True;"
-    
+    ```
     *(Note: Add any necessary MailKit email credentials to the user secrets as required by your `EmailService` implementation).*
 
-3. **Run the application:**
+4. **Run the application:**
+   ```bash
     dotnet run
-
-4. **Database Migrations:**
+    ```
+5. **Database Migrations:**
     Upon starting, the application will detect if there are any pending database migrations. It will prompt you:
     `There are pending database migrations. Do you want to apply them?`
     Select `Yes` to automatically build your SQL Server database schema.
